@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>疏通停車場</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#e9e6df;--road:#b9bcc0;--panel:#f7f6f2;--ink:#1f2328;--mute:#6b7178;--line:#cfcbc1;--accent:#1f2328;--on-accent:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#16181b;--road:#3a3e44;--panel:#23262b;--ink:#eceef0;--mute:#9aa0a8;--line:#3b3f46;--accent:#eceef0;--on-accent:#16181b}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#16181b;--road:#3a3e44;--panel:#23262b;--ink:#eceef0;--mute:#9aa0a8;--line:#3b3f46;--accent:#eceef0;--on-accent:#16181b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;display:flex;justify-content:center;min-height:100vh}
+main{width:min(94vw,520px);padding:14px 0 24px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+h1{font-size:20px;margin:0;font-weight:800}
+.lv{font-size:13px;color:var(--mute)}
+.tools{display:flex;gap:6px;align-items:center}
+button,select{font:inherit;border:0;border-radius:10px;padding:8px 12px;background:var(--accent);color:var(--on-accent);font-weight:700;cursor:pointer}
+select{padding:8px 6px}
+button:focus-visible,select:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px}
+.lbl{font-size:12px;color:var(--mute);margin-bottom:6px}
+#queue{display:flex;gap:4px;align-items:center;min-height:26px;overflow:hidden}
+.p{width:16px;height:16px;border-radius:50%;flex:none}
+.p:first-child{width:24px;height:24px;outline:2px solid var(--ink);outline-offset:1px}
+#bay{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.slot{aspect-ratio:1/1.15;border:2px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .4s ease-in,opacity .4s}
+.slot .bc{height:50%;display:flex;align-items:center;justify-content:center}
+.slot .bc svg{width:100%;height:100%;display:block}
+.slot .r{font-size:10px;letter-spacing:1px;line-height:1}
+.slot.go{transform:translateY(-130%);opacity:0}
+#gridwrap{background:var(--road);border-radius:14px;padding:8px}
+#grid{position:relative;width:100%;aspect-ratio:1;overflow:hidden;border-radius:8px;--n:6}
+.rock{position:absolute;padding:6%;cursor:pointer}
+.rock i{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:22%;background:#6b7178;box-shadow:inset 0 -5px 0 rgba(0,0,0,.3);font-style:normal;font-size:calc(min(94vw,460px) / var(--n) * .4)}
+.car{position:absolute;padding:1%;cursor:pointer;transition:transform .55s cubic-bezier(.5,0,.9,.6);border:0;background:none;border-radius:0}
+.car svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3))}
+.car i{display:flex;width:100%;height:100%;border-radius:26%;font-style:normal;color:#fff;font-size:calc(min(94vw,460px) / var(--n) * .42);box-shadow:inset 0 -5px 0 rgba(0,0,0,.22),0 2px 3px rgba(0,0,0,.25);text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.car i b{flex:0 0 calc(100% / var(--len));display:flex;align-items:center;justify-content:center;font-weight:400}
+.car i b svg{width:64%;height:64%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.car.lk i{background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.2) 0 6px,transparent 6px 12px)}
+.bd{position:absolute;right:3%;top:3%;font-style:normal;font-size:12px;background:#111;color:#fff;border-radius:50%;width:1.5em;height:1.5em;display:flex;align-items:center;justify-content:center;font-weight:700}
+.car.no,.rock.no{animation:sh .3s}
+.car.tk,.rock.tk{animation:tk .2s}
+@keyframes sh{25%{transform:translateX(-6%)}75%{transform:translateX(6%)}}
+@keyframes tk{50%{transform:scale(.9)}}
+@media (prefers-reduced-motion:reduce){.car{transition-duration:.01s}.car.no,.car.tk{animation:none}}
+#msg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:5}
+#msg.on{display:flex}
+#msg div{background:var(--panel);padding:26px 30px;border-radius:16px;text-align:center;max-width:80vw}
+#msg h2{margin:0 0 6px;font-size:24px}
+#msg p{margin:0 0 16px;color:var(--mute)}
+.hint{font-size:12px;color:var(--mute);margin:8px 2px 0;line-height:1.6}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>疏通停車場</h1><div class="lv" id="lv"></div></div>
+<div class="tools"><select id="sel" aria-label="選擇關卡"></select><button id="snd" aria-label="音效與震動">🔊</button><button id="re">重玩</button></div></header>
+<div class="panel"><div class="lbl">候車乘客(最前面的人先上車)</div><div id="queue"></div></div>
+<div class="panel"><div class="lbl">停靠區(5 格,滿了就糟了)</div><div id="bay"></div></div>
+<div id="gridwrap"><div id="grid"></div></div>
+<p class="hint">點車讓它朝箭頭方向開出去,前面不能有東西擋住。長條公車坐得比較多(2 格 4 人、3 格 5 人)。🪨 石頭擋在車前面時,點它可以敲碎,但碎石會占用停靠區 1 格,等 4 位乘客上車後才清掉。進度會自動存在這個瀏覽器。</p>
+</main>
+<div id="msg"><div><h2 id="mt"></h2><p id="mp"></p><button id="mb"></button></div></div>
+<script>
+const COLORS=['#ef4444','#3b82f6','#22c55e','#f59e0b','#a855f7','#06b6d4'];
+const D=[[0,-1],[1,0],[0,1],[-1,0]],ARW=['▲','▶','▼','◀'];
+const $=id=>document.getElementById(id),rnd=n=>Math.floor(Math.random()*n);
+const KEY='carjam-v2';
+let lv=1,best=1,mute=false,N,cars,rocks,queue,bay,over,total,AC;
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s){lv=s.cur||1;best=Math.max(s.best||1,lv);mute=!!s.mute}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({cur:lv,best,mute}))}catch(e){}}
+function snd(f,d=.1,t='sine',v=.07,when=0,slide){
+  if(mute)return;
+  try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+  const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+when;
+  o.type=t;o.frequency.setValueAtTime(f,s);if(slide)o.frequency.exponentialRampToValueAtTime(slide,s+d);
+  g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);
+  o.connect(g);g.connect(AC.destination);o.start(s);o.stop(s+d)}catch(e){}
+}
+const vib=p=>{if(!mute)try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+const cells=c=>{const a=[];for(let i=0;i<c.len;i++)a.push([c.x-D[c.d][0]*i,c.y-D[c.d][1]*i]);return a};
+const inG=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
+const occAt=(x,y)=>rocks.some(r=>r.x===x&&r.y===y)||cars.some(o=>!o.out&&cells(o).some(a=>a[0]===x&&a[1]===y));
+function pathClear(c){let x=c.x+D[c.d][0],y=c.y+D[c.d][1];while(inG(x,y)){if(occAt(x,y))return false;x+=D[c.d][0];y+=D[c.d][1]}return true}
+function gen(){
+  N=Math.min(6+Math.floor((lv-1)/3),7);
+  const nc=Math.min(4+Math.floor(lv/2),6);
+  rocks=[];cars=[];
+  const target=Math.round(N*N*.68);let used=0;
+  for(let t=0;t<1200&&used<target;t++){
+    let len=1;const r=Math.random();
+    if(lv>=4&&r<.3)len=3;else if(lv>=2&&r<.6)len=2;
+    const c={x:rnd(N),y:rnd(N),d:rnd(4),len,c:rnd(nc),riders:0,lk:0,id:cars.length};
+    if(cells(c).some(a=>!inG(a[0],a[1])||occAt(a[0],a[1])))continue;
+    if(!pathClear(c))continue;
+    c.cap=2+len;cars.push(c);used+=len;
+  }
+  total=cars.length;
+  if(lv>=3){const k=Math.min(Math.floor(lv/2),8);for(let t=0;t<k*8&&rocks.length<k;t++){const c=cars[rnd(cars.length)];let x=c.x+D[c.d][0],y=c.y+D[c.d][1];const free=[];while(inG(x,y)){if(!occAt(x,y))free.push([x,y]);x+=D[c.d][0];y+=D[c.d][1]}if(free.length){const f=free[rnd(free.length)];rocks.push({x:f[0],y:f[1],hp:2})}}}
+  const order=cars.slice().reverse();queue=[];
+  for(let i=0;i<order.length;i+=4){
+    const ch=[];order.slice(i,i+4).forEach(c=>{for(let k=0;k<c.cap;k++)ch.push(c.c)});
+    queue.push(...shuffle(ch));
+  }
+  bay=[];over=false;
+}
+function carSvg(c){
+  const L=c.len*100,col=COLORS[c.c],v=c.d%2===0;
+  const tf=['matrix(0,-1,1,0,0,'+L+')','','matrix(0,1,-1,0,100,0)','matrix(-1,0,0,-1,'+L+',100)'][c.d];
+  let win='';
+  if(c.len>1){const n=c.len*2,sp=L-90;for(let i=0;i<n;i++)win+=`<rect x="${16+i*sp/n}" y="24" width="${sp/n-6}" height="52" rx="5" fill="#1e293b" opacity=".8"/>`}
+  else win='<rect x="20" y="22" width="'+(L-52)+'" height="56" rx="14" fill="#000" opacity=".13"/>';
+  return `<svg viewBox="0 0 ${v?100:L} ${v?L:100}"><g transform="${tf}">`+
+  `<rect x="${L-36}" y="3" width="24" height="11" rx="3" fill="#111"/><rect x="${L-36}" y="86" width="24" height="11" rx="3" fill="#111"/>`+
+  `<rect x="14" y="3" width="24" height="11" rx="3" fill="#111"/><rect x="14" y="86" width="24" height="11" rx="3" fill="#111"/>`+
+  `<rect x="4" y="10" width="${L-8}" height="80" rx="26" fill="${col}" stroke="rgba(0,0,0,.35)" stroke-width="3"/>`+
+  `<rect x="10" y="14" width="${L-20}" height="26" rx="13" fill="#fff" opacity=".22"/>`+win+
+  `<rect x="${L-32}" y="24" width="14" height="52" rx="5" fill="#1e293b" opacity=".88"/><rect x="12" y="28" width="8" height="44" rx="3" fill="#1e293b" opacity=".7"/>`+
+  `<circle cx="${L-10}" cy="24" r="6" fill="#fde68a"/><circle cx="${L-10}" cy="76" r="6" fill="#fde68a"/>`+
+  `<rect x="6" y="20" width="5" height="14" rx="2" fill="#fca5a5"/><rect x="6" y="66" width="5" height="14" rx="2" fill="#fca5a5"/>`+
+  `<path d="M12 0 L-7 -13 L-7 13 Z" transform="translate(${L-56},50)" fill="#fff" opacity=".95"/></g></svg>`;
+}
+function build(){
+  const g=$('grid');g.innerHTML='';g.style.setProperty('--n',N);
+  rocks.forEach(r=>{const e=document.createElement('div');e.className='rock';
+    e.style.cssText=`left:${r.x/N*100}%;top:${r.y/N*100}%;width:${100/N}%;height:${100/N}%`;
+    e.innerHTML=`<i>🪨</i>`;e.onclick=()=>smash(r,e);g.appendChild(e)});
+  cars.forEach(c=>{
+    const e=document.createElement('div'),h=c.d%2,cs=cells(c);e.setAttribute('role','button');e.tabIndex=0;
+    const mx=Math.min(...cs.map(a=>a[0])),my=Math.min(...cs.map(a=>a[1]));
+    e.className='car'+(c.lk?' lk':'');e.setAttribute('aria-label','車子');
+    e.style.cssText=`left:${mx/N*100}%;top:${my/N*100}%;width:${(h?c.len:1)/N*100}%;height:${(h?1:c.len)/N*100}%;--len:${c.len}`;
+    e.innerHTML=carSvg(c)+(c.lk?`<em class="bd">${c.lk}</em>`:'');
+    e.onclick=()=>tap(c,e);c.el=e;g.appendChild(e);
+  });
+  $('lv').textContent='第 '+lv+' 關 · '+total+' 台車 · 最高 '+best;
+  $('sel').innerHTML=Array.from({length:best},(_,i)=>`<option value="${i+1}"${i+1===lv?' selected':''}>第 ${i+1} 關</option>`).join('');
+  $('snd').textContent=mute?'🔇':'🔊';
+  draw();
+}
+function draw(){
+  $('queue').innerHTML=queue.slice(0,16).map(c=>`<span class="p" style="background:${COLORS[c]}"></span>`).join('')||'<span class="lbl">沒有人了</span>';
+  let h='';
+  for(let i=0;i<5;i++){const b=bay[i];
+    h+=b&&b.rb?`<div class="slot" style="border-style:solid"><div style="font-size:24px;line-height:1">🪨</div><div class="r">還要 ${b.rb} 人</div></div>`:b?`<div class="slot ${b.go?'go':''}" style="border-style:solid"><div class="bc" style="width:${40+b.len*14}%">${carSvg({c:b.c,len:b.len,d:1})}</div><div class="r">${'●'.repeat(b.riders)+'○'.repeat(b.cap-b.riders)}</div></div>`:'<div class="slot"></div>';}
+  $('bay').innerHTML=h;
+}
+function anim(e,cl){e.classList.remove('no','tk');void e.offsetWidth;e.classList.add(cl)}
+function smash(r,e){
+  if(over)return;
+  if(bay.length>=5){anim(e,'no');snd(130,.15,'square',.06);vib(30);return}
+  rocks.splice(rocks.indexOf(r),1);e.remove();
+  bay.push({rb:4,c:-1,riders:0,cap:0,len:1});
+  snd(90,.25,'sawtooth',.08,0,50);vib(30);draw();check();
+}
+function tap(c,e){
+  if(over||c.out)return;
+  if(!pathClear(c)||bay.length>=5){anim(e,'no');snd(130,.15,'square',.06);vib(30);return}
+  if(c.lk>0){c.lk--;anim(e,'tk');snd(520,.08,'triangle');vib(15);
+    const b=e.querySelector('.bd');if(c.lk>0){b.textContent=c.lk;return}b.remove();e.classList.remove('lk')}
+  c.out=true;c.ready=Date.now()+700;bay.push(c);
+  const s=(N+c.len+1)/c.len*100;
+  e.style.transform=`translate(${D[c.d][0]*s}%,${D[c.d][1]*s}%)`;
+  snd(320,.3,'sawtooth',.04,0,110);vib(20);
+  setTimeout(()=>e.remove(),650);draw();
+}
+setInterval(()=>{
+  if(over||!queue.length)return;
+  const now=Date.now(),f=queue[0];
+  const car=bay.find(b=>!b.go&&b.c===f&&b.riders<b.cap&&now>=b.ready);
+  if(car){
+    car.riders++;queue.shift();snd(650+car.riders*90,.07,'sine',.06);
+    bay.forEach(b=>{if(b.rb)b.rb--});for(let i=bay.length-1;i>=0;i--)if(bay[i].rb===0)bay.splice(i,1);
+    if(car.riders===car.cap){car.go=true;snd(520,.1,'triangle');snd(780,.18,'triangle',.07,.1);vib([20,30,20]);
+      setTimeout(()=>{bay.splice(bay.indexOf(car),1);draw();check()},450)}
+    draw();
+  }
+  check();
+},500);
+function check(){
+  if(over)return;
+  if(!queue.length&&cars.every(c=>c.out)&&bay.every(b=>b.go||b.riders>=b.cap))return end(true);
+  if(bay.length>=5&&!bay.some(b=>b.go)&&!bay.some(b=>b.c===queue[0]&&b.riders<b.cap))end(false);
+}
+function end(win){
+  over=true;
+  if(win){lv++;best=Math.max(best,lv);save();[523,659,784,1047].forEach((f,i)=>snd(f,.2,'triangle',.07,i*.12));vib([40,40,80])}
+  else{[400,330,260].forEach((f,i)=>snd(f,.25,'sawtooth',.05,i*.16));vib(200)}
+  $('mt').textContent=win?'過關!':'停靠區塞住了';
+  $('mp').textContent=win?'停車場清空了,所有乘客都上車。':'停靠區已滿,而且沒有符合最前面乘客顏色的車。';
+  $('mb').textContent=win?'下一關':'再試一次';
+  $('mb').onclick=()=>{$('msg').classList.remove('on');start()};
+  setTimeout(()=>$('msg').classList.add('on'),400);
+}
+function start(){gen();build();save()}
+$('re').onclick=()=>{$('msg').classList.remove('on');start()};
+$('sel').onchange=e=>{lv=+e.target.value;$('msg').classList.remove('on');start()};
+$('snd').onclick=()=>{mute=!mute;$('snd').textContent=mute?'🔇':'🔊';save();snd(600,.08)};
+start();
+</script>
+</body>
+</html>
