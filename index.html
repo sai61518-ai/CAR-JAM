@@ -61,7 +61,7 @@ button:focus-visible,select:focus-visible{outline:3px solid #3b82f6;outline-offs
 <body>
 <main>
 <header><div><h1>疏通停車場</h1><div class="lv" id="lv"></div></div>
-<div class="tools"><select id="sel" aria-label="選擇關卡"></select><button id="tilt" aria-label="切換斜角視角">◇</button><button id="snd" aria-label="音效與震動">🔊</button><button id="re">重玩</button></div></header>
+<div class="tools"><select id="sel" aria-label="選擇關卡"></select><button id="snd" aria-label="音效與震動">🔊</button><button id="re">重玩</button></div></header>
 <div class="panel"><div class="lbl">候車乘客(最前面的人先上車)</div><div id="queue"></div></div>
 <div class="panel"><div class="lbl">停靠區(5 格,滿了就糟了)</div><div id="bay"></div></div>
 <div id="gridwrap"><div id="grid"></div></div>
@@ -217,7 +217,6 @@ function end(win){
 function start(){gen();build();save()}
 $('re').onclick=()=>{$('msg').classList.remove('on');start()};
 $('sel').onchange=e=>{lv=+e.target.value;$('msg').classList.remove('on');start()};
-$('tilt').onclick=()=>{tilt=!tilt;$('gridwrap').classList.toggle('tilt',tilt);save()};
 $('snd').onclick=()=>{mute=!mute;$('snd').textContent=mute?'🔇':'🔊';save();snd(600,.08)};
 start();
 </script>
